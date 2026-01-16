@@ -7,9 +7,16 @@
 **支持的事件类型**：
 | 事件 | Matcher | 触发时机 | 通知内容 |
 |------|---------|----------|----------|
-| `Stop` | - | 任务完全完成 | "任务已完成" |
-| `Notification` | `permission_prompt` | 权限请求 | "需要权限确认" |
-| `Notification` | `idle_prompt` | 空闲等待输入（60秒+） | "等待你的输入" |
+| `Stop` | - | 任务完全完成 | 自动提取任务摘要 |
+| `Notification` | `permission_prompt` | 权限请求 | 显示具体权限请求内容 |
+| `Notification` | `idle_prompt` | 空闲等待输入（60秒+） | 显示等待原因 |
+| `Notification` | `elicitation_dialog` | MCP工具需要输入 | 显示MCP工具请求内容 |
+
+**智能消息生成**：
+- 自动从 stdin 读取 hook 输入的 JSON 数据
+- 使用 Claude Code 传入的实际 `message` 字段
+- Stop 事件自动读取对话记录提取任务摘要
+- 无需手动指定消息内容
 
 ## 🔧 配置步骤
 
@@ -140,9 +147,10 @@ node feishu-notify.js --webhook "你的webhook地址" --message "测试消息"
 3. **声音提醒**：电脑会播放语音提醒
 
 **通知场景**：
-- **任务完成 (Stop)**：Claude 完成了所有工作，你可以查看结果
-- **权限请求 (Notification: permission_prompt)**：Claude 需要你确认执行某个操作
-- **等待输入 (Notification: idle_prompt)**：Claude 空闲超过60秒，等待你的回复
+- **任务完成 (Stop)**：自动提取 Claude 最后的回复作为摘要，如"已完成: 修复了登录页面的样式问题..."
+- **权限请求 (Notification: permission_prompt)**：显示具体操作，如"Claude needs your permission to use Bash: rm -rf node_modules"
+- **等待输入 (Notification: idle_prompt)**：Claude 空闲超过60秒，显示等待原因
+- **MCP工具输入 (Notification: elicitation_dialog)**：MCP 工具需要额外输入时通知
 
 这样你就可以专心玩手机，不用担心错过任务状态变化了！
 

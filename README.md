@@ -124,7 +124,7 @@ SOUND_ENABLED=true          # 是否启用声音提醒
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "node /path/to/ccdd/notify-system.js --message '任务已完成'"
+        "command": "node /path/to/ccdd/notify-system.js"
       }]
     }],
     "Notification": [
@@ -132,14 +132,21 @@ SOUND_ENABLED=true          # 是否启用声音提醒
         "matcher": "permission_prompt",
         "hooks": [{
           "type": "command",
-          "command": "node /path/to/ccdd/notify-system.js --message '需要权限确认'"
+          "command": "node /path/to/ccdd/notify-system.js"
         }]
       },
       {
         "matcher": "idle_prompt",
         "hooks": [{
           "type": "command",
-          "command": "node /path/to/ccdd/notify-system.js --message '等待你的输入'"
+          "command": "node /path/to/ccdd/notify-system.js"
+        }]
+      },
+      {
+        "matcher": "elicitation_dialog",
+        "hooks": [{
+          "type": "command",
+          "command": "node /path/to/ccdd/notify-system.js"
         }]
       }
     ]
@@ -148,11 +155,18 @@ SOUND_ENABLED=true          # 是否启用声音提醒
 ```
 
 **事件说明**：
-| 事件 | Matcher | 触发时机 | 典型场景 |
+| 事件 | Matcher | 触发时机 | 通知内容 |
 |------|---------|----------|----------|
-| `Stop` | - | 任务完全完成/停止 | Claude 完成了所有工作 |
-| `Notification` | `permission_prompt` | 权限请求 | Claude 需要你确认执行某个操作 |
-| `Notification` | `idle_prompt` | 空闲等待输入（60秒+） | Claude 等待你的回复 |
+| `Stop` | - | 任务完全完成/停止 | 自动提取任务摘要 |
+| `Notification` | `permission_prompt` | 权限请求 | 显示具体的权限请求内容 |
+| `Notification` | `idle_prompt` | 空闲等待输入（60秒+） | 显示等待原因 |
+| `Notification` | `elicitation_dialog` | MCP工具需要输入 | 显示MCP工具请求内容 |
+
+**智能消息生成**：
+- 脚本会自动从 stdin 读取 hook 输入的 JSON 数据
+- `Notification` 事件：直接使用 Claude Code 传入的 `message` 字段，显示具体操作内容
+- `Stop` 事件：自动读取对话记录，提取最后的任务摘要
+- 无需手动指定 `--message` 参数，通知内容更精确
 
 **Windows 路径示例**：
 ```json
@@ -161,7 +175,7 @@ SOUND_ENABLED=true          # 是否启用声音提醒
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js --message '任务已完成'"
+        "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js"
       }]
     }],
     "Notification": [
@@ -169,14 +183,21 @@ SOUND_ENABLED=true          # 是否启用声音提醒
         "matcher": "permission_prompt",
         "hooks": [{
           "type": "command",
-          "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js --message '需要权限确认'"
+          "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js"
         }]
       },
       {
         "matcher": "idle_prompt",
         "hooks": [{
           "type": "command",
-          "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js --message '等待你的输入'"
+          "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js"
+        }]
+      },
+      {
+        "matcher": "elicitation_dialog",
+        "hooks": [{
+          "type": "command",
+          "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js"
         }]
       }
     ]
@@ -190,7 +211,7 @@ SOUND_ENABLED=true          # 是否启用声音提醒
 - 📲 发送Telegram通知（如果配置了）
 - 🔊 播放声音提醒
 - ⌚ 触发手环震动
-- ⏸️ 权限请求和空闲等待时也会通知，不会错过需要输入的时刻
+- 🎯 智能提取通知内容，显示具体操作而非固定文案
 
 ## 🎯 使用效果
 
