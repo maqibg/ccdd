@@ -115,32 +115,71 @@ SOUND_ENABLED=true          # 是否启用声音提醒
 
 ### 🔧 Claude Code Hook配置
 
-在 `~/.claude/settings.json` 中配置hook，任务完成时自动发送通知：
+在 `~/.claude/settings.json` 中配置hook，任务完成或需要输入时自动发送通知：
 
-**推荐配置（使用统一通知系统）**：
+**推荐配置（同时监听 Stop 和 Notification 事件）**：
 ```json
 {
   "hooks": {
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "node /projects/ccdd/notify-system.js --message 'Claude Code任务已完成'"
+        "command": "node /path/to/ccdd/notify-system.js --message '任务已完成'"
       }]
-    }]
+    }],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [{
+          "type": "command",
+          "command": "node /path/to/ccdd/notify-system.js --message '需要权限确认'"
+        }]
+      },
+      {
+        "matcher": "idle_prompt",
+        "hooks": [{
+          "type": "command",
+          "command": "node /path/to/ccdd/notify-system.js --message '等待你的输入'"
+        }]
+      }
+    ]
   }
 }
 ```
 
-**高级配置（自定义消息）**：
+**事件说明**：
+| 事件 | Matcher | 触发时机 | 典型场景 |
+|------|---------|----------|----------|
+| `Stop` | - | 任务完全完成/停止 | Claude 完成了所有工作 |
+| `Notification` | `permission_prompt` | 权限请求 | Claude 需要你确认执行某个操作 |
+| `Notification` | `idle_prompt` | 空闲等待输入（60秒+） | Claude 等待你的回复 |
+
+**Windows 路径示例**：
 ```json
 {
   "hooks": {
     "Stop": [{
       "hooks": [{
         "type": "command",
-        "command": "node /projects/ccdd/notify-system.js --message '代码优化完成'"
+        "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js --message '任务已完成'"
       }]
-    }]
+    }],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [{
+          "type": "command",
+          "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js --message '需要权限确认'"
+        }]
+      },
+      {
+        "matcher": "idle_prompt",
+        "hooks": [{
+          "type": "command",
+          "command": "node C://Users/Administrator/.claude/ccdd/notify-system.js --message '等待你的输入'"
+        }]
+      }
+    ]
   }
 }
 ```
@@ -151,6 +190,7 @@ SOUND_ENABLED=true          # 是否启用声音提醒
 - 📲 发送Telegram通知（如果配置了）
 - 🔊 播放声音提醒
 - ⌚ 触发手环震动
+- ⏸️ 权限请求和空闲等待时也会通知，不会错过需要输入的时刻
 
 ## 🎯 使用效果
 

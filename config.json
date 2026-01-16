@@ -2,14 +2,14 @@
   "notification": {
     "type": "feishu",
     "feishu": {
-      "webhook_url": "https://open.feishu.cn/open-apis/bot/v2/hook/YOUR_WEBHOOK_URL_HERE",
-      "enabled": false
+      "webhook_url": "https://open.feishu.cn/open-apis/bot/v2/hook/ffb1c621-d0bf-42d4-8165-d0bf87b4ff03",
+      "enabled": true
     },
     "telegram": {
       "enabled": true
     },
     "sound": {
-      "enabled": false,
+      "enabled": true,
       "backup": true
     }
   },
