@@ -227,7 +227,22 @@ SOUND_ENABLED=true          # 是否启用声音提醒
 
 ### 测试完整通知系统
 ```bash
-node notify-system.js --task "测试任务"
+node notify-system.js --message "测试任务"
+```
+
+### 测试不同事件类型的声音提醒
+```bash
+# 测试任务完成声音 (低音 600Hz，语音"任务完成")
+node notify-sound.js --event Stop
+
+# 测试权限请求声音 (高音 1000Hz，语音"需要权限确认")
+node notify-sound.js --event Notification --type permission_prompt
+
+# 测试等待输入声音 (中音 800Hz，语音"等待你的输入")
+node notify-sound.js --event Notification --type idle_prompt
+
+# 测试MCP工具输入声音 (中高音 900Hz，语音"需要输入信息")
+node notify-sound.js --event Notification --type elicitation_dialog
 ```
 
 ### 只测试飞书通知
