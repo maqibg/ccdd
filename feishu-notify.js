@@ -8,6 +8,46 @@ const https = require('https');
 const http = require('http');
 
 /**
+ * 格式化时间为 MM-DD HH:mm
+ * @param {Date} date - 日期对象
+ * @returns {string} 格式化后的时间字符串
+ */
+function formatTime(date) {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${month}-${day} ${hours}:${minutes}`;
+}
+
+/**
+ * 从任务信息推断状态
+ * @param {string} taskInfo - 任务信息文本
+ * @returns {string} 状态：'完成' | '失败' | '等待输入'
+ */
+function inferStatusFromText(taskInfo) {
+    // 入参兜底
+    taskInfo = String(taskInfo ?? '');
+    const text = taskInfo.toLowerCase();
+
+    // 等待输入关键词（移除过于宽泛的"确认"）
+    if (text.includes('permission') || text.includes('权限') ||
+        text.includes('idle') || text.includes('等待') ||
+        text.includes('elicitation') || text.includes('请输入')) {
+        return '等待输入';
+    }
+
+    // 失败关键词
+    if (text.includes('error') || text.includes('失败') ||
+        text.includes('exception') || text.includes('502') ||
+        text.includes('bad gateway') || /http\s*5\d{2}/.test(text)) {
+        return '失败';
+    }
+
+    return '完成';
+}
+
+/**
  * 飞书webhook通知类
  */
 class FeishuNotifier {
@@ -171,14 +211,28 @@ async function notifyTaskCompletion(taskInfo = "Claude Code任务已完成", web
 
     const notifier = new FeishuNotifier(FEISHU_WEBHOOK_URL);
 
-    // 构造丰富的通知内容
-    const timestamp = new Date().toLocaleString('zh-CN');
-    // 项目名放在title最前面，适配手环显示
-    const title = projectName ? `${projectName}: ${taskInfo}` : taskInfo;
-    const content = `⏰ 完成时间：${timestamp}
-🎯 手机震动 + 手环震动提醒
+    // 推断状态
+    const status = inferStatusFromText(taskInfo);
+    const formattedTime = formatTime(new Date());
 
-💡 可以查看执行结果了！`;
+    // 标题：【状态】项目名
+    const title = projectName ? `【${status}】${projectName}` : `【${status}】任务通知`;
+
+    // 正文：分层显示
+    let content = `■ 时间：${formattedTime}\n`;
+
+    if (status === '失败') {
+        // 失败时：错误信息过长则裁剪
+        const errorText = taskInfo.length > 500 ? taskInfo.slice(0, 500) + '...' : taskInfo;
+        content += `■ 错误：${errorText}`;
+    } else if (status === '等待输入') {
+        content += `■ 原因：需要你的输入\n`;
+        content += `■ 详情：${taskInfo}`;
+    } else {
+        content += `■ 状态：任务已完成\n`;
+        const detailText = taskInfo.length > 200 ? taskInfo.slice(0, 200) + '...' : taskInfo;
+        content += `■ 详情：${detailText}`;
+    }
 
     try {
         // 发送富文本消息

@@ -39,3 +39,4 @@ coverage/
 # 缓存文件
 .cache/
 .npm/
+.ace-tool/
